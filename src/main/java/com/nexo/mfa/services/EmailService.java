@@ -1,5 +1,7 @@
 package com.nexo.mfa.services;
 
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -9,17 +11,25 @@ import java.util.Map;
 public class EmailService {
 
     private final MFACodeService codeService;
+    private final JavaMailSender mailSender;
     private final Map<String, String> map;
 
-    public EmailService(MFACodeService codeService) {
+    public EmailService(MFACodeService codeService, JavaMailSender mailSender) {
         this.codeService = codeService;
+        this.mailSender = mailSender;
         this.map = new HashMap<>();
     }
 
     public void sendCode(String emailAddress) {
-        // TODO send email
         String code = codeService.generateCode();
         map.put(emailAddress, code);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(emailAddress);
+        message.setSubject("MFA code");
+        message.setText("Your code is " + code);
+        mailSender.send(message);
+
         System.out.println("Sending code " + code + " to " + emailAddress + ".");
     }
 
